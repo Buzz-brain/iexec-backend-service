@@ -251,10 +251,7 @@ Click "Execute" in Swagger UI to try endpoints directly. The servers dropdown (t
     - POST /iexec/protect-data
       - Creates a protected data asset using iExec DataProtector
       - Validation depends on `plan_type` (see examples)
-      - Example required base fields: `name`, `contract_plan_id`, `plan_type`
-
-    - POST /iexec/grant-access
-      - Grants access to a protected data asset
+  - Example required base fields: `contract_plan_id`, `plan_type` (all fields as strings)
       - Required fields: `protectedData`, `authorizedApp`, `authorizedUser`, `numberOfAccess`
 
     - POST /iexec/process-data
@@ -264,10 +261,10 @@ Click "Execute" in Swagger UI to try endpoints directly. The servers dropdown (t
     ## Payload validation summary
 
     - `protect-data`:
-      - Base required fields: `name`, `contract_plan_id`, `plan_type`
+      - Base required fields: `contract_plan_id`, `plan_type` (all as strings)
       - `plan_type` must be one of: `timelock`, `inactivity`, `health_oracle`
-      - `timelock` requires `release_timestamp` (number / unix ms)
-      - `inactivity` requires `last_active_at`, `inactivity_period`, `grace_period`
+      - `timelock` requires `release_timestamp` (string)
+      - `inactivity` requires `last_active_at`, `inactivity_period`, `grace_period` (all strings)
       - `health_oracle` requires `health_image` (string)
 
     - `grant-access` (all required): `protectedData`, `authorizedApp`, `authorizedUser`, `numberOfAccess`
@@ -293,10 +290,9 @@ Click "Execute" in Swagger UI to try endpoints directly. The servers dropdown (t
       -H "Content-Type: application/json" \
       -H "x-api-key: API_KEY_VALUE" \
       -d '{
-        "name": "my_data",
         "contract_plan_id": "plan-123",
         "plan_type": "timelock",
-        "release_timestamp": 1735689600000
+        "release_timestamp": "1735689600000"
       }'
     ```
 
@@ -338,10 +334,9 @@ Click "Execute" in Swagger UI to try endpoints directly. The servers dropdown (t
 
     ```json
     {
-      "name": "my_data",
       "contract_plan_id": "plan-123",
       "plan_type": "timelock",
-      "release_timestamp": 1735689600000
+      "release_timestamp": "1735689600000"
     }
     ```
 

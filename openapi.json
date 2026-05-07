@@ -75,16 +75,15 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "name": { "type": "string" },
                   "contract_plan_id": { "type": "string" },
                   "plan_type": { "type": "string", "enum": ["timelock", "inactivity", "health_oracle"] },
-                  "release_timestamp": { "type": "integer" },
-                  "last_active_at": { "type": "integer" },
-                  "inactivity_period": { "type": "integer" },
-                  "grace_period": { "type": "integer" },
+                  "release_timestamp": { "type": "string", "description": "Unix timestamp as string" },
+                  "last_active_at": { "type": "string", "description": "Unix timestamp as string" },
+                  "inactivity_period": { "type": "string", "description": "Numeric duration as string" },
+                  "grace_period": { "type": "string", "description": "Numeric duration as string" },
                   "health_image": { "type": "string" }
                 },
-                "required": ["name", "contract_plan_id", "plan_type"]
+                "required": ["contract_plan_id", "plan_type"]
               }
             }
           }

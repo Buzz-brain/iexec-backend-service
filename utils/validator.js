@@ -1,7 +1,7 @@
 /**
  * Validate protect-data request payload
- * NEW: Payload validated based on plan_type (timelock, inactivity, health_oracle)
- * Only fields relevant to the plan_type are required
+ * Payload validated based on plan_type (timelock, inactivity, health_oracle)
+ * All fields must be strings
  */
 export function validateProtectData(payload) {
   if (!payload || typeof payload !== 'object') {
@@ -9,14 +9,22 @@ export function validateProtectData(payload) {
   }
 
   // Base required fields (always needed)
-  const baseRequired = ['name', 'contract_plan_id', 'plan_type'];
-  const baseMissing = baseRequired.filter((field) => !payload[field]);
+  const baseRequired = ['contract_plan_id', 'plan_type'];
+  const baseMissing = baseRequired.filter((field) => payload[field] === undefined || payload[field] === null || payload[field] === '');
 
   if (baseMissing.length > 0) {
     return {
       valid: false,
       error: `Missing required fields: ${baseMissing.join(', ')}`,
     };
+  }
+
+  if (typeof payload.contract_plan_id !== 'string') {
+    return { valid: false, error: 'contract_plan_id must be a string' };
+  }
+
+  if (typeof payload.plan_type !== 'string') {
+    return { valid: false, error: 'plan_type must be a string' };
   }
 
   // Validate plan_type is one of allowed values
@@ -30,17 +38,17 @@ export function validateProtectData(payload) {
 
   // Validate plan-type specific required fields
   if (payload.plan_type === 'timelock') {
-    if (!payload.release_timestamp && payload.release_timestamp !== 0) {
+    if (payload.release_timestamp === undefined || payload.release_timestamp === null || payload.release_timestamp === '') {
       return { valid: false, error: 'release_timestamp is required for plan_type timelock' };
     }
-    if (!isNonNegativeNumber(payload.release_timestamp)) {
-      return { valid: false, error: 'release_timestamp must be a non-negative number' };
+    if (typeof payload.release_timestamp !== 'string') {
+      return { valid: false, error: 'release_timestamp must be a string' };
     }
   }
 
   if (payload.plan_type === 'inactivity') {
     const inactivityRequired = ['last_active_at', 'inactivity_period', 'grace_period'];
-    const inactivityMissing = inactivityRequired.filter((field) => payload[field] === undefined || payload[field] === null);
+    const inactivityMissing = inactivityRequired.filter((field) => payload[field] === undefined || payload[field] === null || payload[field] === '');
 
     if (inactivityMissing.length > 0) {
       return {
@@ -48,19 +56,16 @@ export function validateProtectData(payload) {
         error: `inactivity plan requires: ${inactivityMissing.join(', ')}`,
       };
     }
-    if (!isNonNegativeNumber(payload.last_active_at)) {
-      return { valid: false, error: 'last_active_at must be a non-negative number' };
-    }
-    if (!isNonNegativeNumber(payload.inactivity_period)) {
-      return { valid: false, error: 'inactivity_period must be a non-negative number' };
-    }
-    if (!isNonNegativeNumber(payload.grace_period)) {
-      return { valid: false, error: 'grace_period must be a non-negative number' };
+
+    for (const field of inactivityRequired) {
+      if (typeof payload[field] !== 'string') {
+        return { valid: false, error: `${field} must be a string` };
+      }
     }
   }
 
   if (payload.plan_type === 'health_oracle') {
-    if (!payload.health_image) {
+    if (!payload.health_image && payload.health_image !== '') {
       return { valid: false, error: 'health_image is required for plan_type health_oracle' };
     }
     if (typeof payload.health_image !== 'string') {
@@ -68,9 +73,8 @@ export function validateProtectData(payload) {
     }
   }
 
-  // Build validated data object with all submitted fields
+  // Build validated data object with all submitted fields (as strings)
   const data = {
-    name: payload.name,
     contract_plan_id: payload.contract_plan_id,
     plan_type: payload.plan_type,
     ...(payload.release_timestamp && { release_timestamp: payload.release_timestamp }),

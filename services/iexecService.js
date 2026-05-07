@@ -34,8 +34,8 @@ function initializeProvider() {
 
 /**
  * Build protection payload based on plan_type
- * @param {Object} payload - Incoming payload with all fields
- * @returns {Object} Minimal payload for protection (only fields for the plan_type)
+ * @param {Object} payload - Incoming payload with all fields as strings
+ * @returns {Object} Payload for protection (only fields for the plan_type, all as strings)
  */
 function buildProtectionPayload(payload) {
   const planType = payload.plan_type;
@@ -71,8 +71,8 @@ function buildProtectionPayload(payload) {
 
 /**
  * Protect data by creating protected data asset
- * @param {Object} payload - Data protection payload from frontend
- * @returns {Promise<Object>} Protected data info with clear naming and protected payload
+ * @param {Object} payload - Data protection payload from frontend (all fields as strings)
+ * @returns {Promise<Object>} Protected data info with address and metadata
  */
 async function protectData(payload) {
   try {
@@ -81,15 +81,13 @@ async function protectData(payload) {
     // Build minimal protection payload based on plan_type
     const protectedDataPayload = buildProtectionPayload(payload);
 
-    // Call iExec with only required fields
+    // Call iExec with only the data payload
     const protectedData = await dataProtector.protectData({
-      name: payload.name,
       data: protectedDataPayload,
     });
 
-    // Return metadata about what was protected, INCLUDING the exact payload
+    // Return metadata about what was protected
     return {
-      name: payload.name,
       protected_address: protectedData.address,
       owner_address: protectedData.owner,
       plan_type: payload.plan_type,
