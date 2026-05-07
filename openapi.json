@@ -8,7 +8,15 @@
   "servers": [
     {
       "url": "http://localhost:3000",
-      "description": "Local server"
+      "description": "Local development server"
+    },
+    {
+      "url": "/",
+      "description": "Same host (relative) - use when Swagger UI is served from the API host"
+    },
+    {
+      "url": "https://iexec-backend-service.onrender.com",
+      "description": "Render deployment (public)"
     }
   ],
   "components": {

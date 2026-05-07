@@ -14,6 +14,15 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(express.json());
 
+// Minimal CORS headers to allow Swagger UI and other clients to call the API
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-api-key, Accept');
+  if (req.method === 'OPTIONS') return res.sendStatus(200);
+  next();
+});
+
 // Serve Swagger UI if openapi.json exists
 let openapiDoc = null;
 try {
