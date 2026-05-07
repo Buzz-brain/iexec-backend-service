@@ -79,7 +79,8 @@ app.post('/iexec/protect-data', auth, async (req, res) => {
     const result = await iexecService.protectData(validation.data);
     respondSuccess(res, result, 201);
   } catch (error) {
-    respondError(res, error.message || 'Failed to protect data', 500, error);
+    const details = error.originalError ? { reason: error.originalError.message, stack: error.originalError.stack } : { stack: error.stack };
+    respondError(res, error.message || 'Failed to protect data', 500, details);
   }
 });
 
@@ -97,7 +98,12 @@ app.post('/iexec/grant-access', auth, async (req, res) => {
     const result = await iexecService.grantAccess(validation.data);
     respondSuccess(res, result, 201);
   } catch (error) {
-    respondError(res, error.message || 'Failed to grant access', 500, error);
+    // Check for "already granted" error and return 409 Conflict
+    if (error.message && error.message.includes('already granted')) {
+      return respondError(res, error.message, 409);
+    }
+    const details = error.originalError ? { reason: error.originalError.message, stack: error.originalError.stack } : { stack: error.stack };
+    respondError(res, error.message || 'Failed to grant access', 500, details);
   }
 });
 
@@ -115,7 +121,8 @@ app.post('/iexec/process-data', auth, async (req, res) => {
     const result = await iexecService.processData(validation.data);
     respondSuccess(res, result, 201);
   } catch (error) {
-    respondError(res, error.message || 'Failed to process data', 500, error);
+    const details = error.originalError ? { reason: error.originalError.message, stack: error.originalError.stack } : { stack: error.stack };
+    respondError(res, error.message || 'Failed to process data', 500, details);
   }
 });
 

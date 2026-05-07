@@ -97,7 +97,13 @@ async function protectData(payload) {
       created_at: Date.now(),
     };
   } catch (error) {
-    throw new Error(`Protect data failed: ${error.message}`);
+    console.error('[protectData] Error:', error);
+    // Extract cause error message if available (WorkflowError with nested cause)
+    const causeMessage = error.cause?.message || error.message;
+    const err = new Error(causeMessage);
+    err.originalError = error;
+    err.iexecError = true;
+    throw err;
   }
 }
 
@@ -128,6 +134,7 @@ async function grantAccess(options) {
 
     const { dataProtector } = initializeProvider();
 
+    console.log('[grantAccess] Calling iExec with:', { protectedData, authorizedApp, authorizedUser, numberOfAccess, allowBulk });
     const result = await dataProtector.grantAccess({
       protectedData,
       authorizedApp,
@@ -135,6 +142,7 @@ async function grantAccess(options) {
       numberOfAccess,
       allowBulk,
     });
+    console.log('[grantAccess] Result:', result);
 
     return {
       protected_address: protectedData,
@@ -148,7 +156,13 @@ async function grantAccess(options) {
       granted_at: Date.now(),
     };
   } catch (error) {
-    throw new Error(`Grant access failed: ${error.message}`);
+    console.error('[grantAccess] Error:', error);
+    // Extract cause error message if available (WorkflowError with nested cause)
+    const causeMessage = error.cause?.message || error.message;
+    const err = new Error(causeMessage);
+    err.originalError = error;
+    err.iexecError = true;
+    throw err;
   }
 }
 
@@ -181,6 +195,7 @@ async function processData(options) {
 
     const { dataProtector } = initializeProvider();
 
+    console.log('[processData] Calling iExec with:', { protectedData, authorizedApp, workerpool, workerpoolMaxPrice });
     const result = await dataProtector.processProtectedData({
       protectedData,
       app: authorizedApp,
@@ -190,6 +205,7 @@ async function processData(options) {
         console.log(`[${isDone ? '✓' : '..'}] ${title}`);
       },
     });
+    console.log('[processData] Result:', { taskId: result.taskId, dealId: result.dealId });
 
     // Save result if available
     let resultPath = null;
@@ -212,7 +228,13 @@ async function processData(options) {
       processed_at: Date.now(),
     };
   } catch (error) {
-    throw new Error(`Process data failed: ${error.message}`);
+    console.error('[processData] Error:', error);
+    // Extract cause error message if available (WorkflowError with nested cause)
+    const causeMessage = error.cause?.message || error.message;
+    const err = new Error(causeMessage);
+    err.originalError = error;
+    err.iexecError = true;
+    throw err;
   }
 }
 
