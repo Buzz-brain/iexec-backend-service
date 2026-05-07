@@ -3,6 +3,8 @@ import dotenv from 'dotenv';
 import { iexecService } from './services/iexecService.js';
 import { validateProtectData, validateGrantAccess, validateProcessData } from './utils/validator.js';
 import { respondSuccess, respondError } from './utils/responseHandler.js';
+import fs from 'node:fs';
+import swaggerUi from 'swagger-ui-express';
 
 dotenv.config({ path: '.env' });
 
@@ -11,6 +13,16 @@ const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(express.json());
+
+// Serve Swagger UI if openapi.json exists
+let openapiDoc = null;
+try {
+  const openapiPath = new URL('./openapi.json', import.meta.url);
+  openapiDoc = JSON.parse(fs.readFileSync(openapiPath, 'utf8'));
+  app.use('/docs', swaggerUi.serve, swaggerUi.setup(openapiDoc));
+} catch (err) {
+  console.warn('Swagger UI not available (openapi.json missing or invalid)');
+}
 
 // ============================================
 // AUTHENTICATION MIDDLEWARE

@@ -183,6 +183,8 @@ app.post('/iexec/my-endpoint', async (req, res) => {
        GET  /health
     ```
 
+    API documentation (Swagger UI) is available at: `GET /docs` when the server is running (serves `openapi.json`).
+
     ## Environment (required)
 
     Create `.env` with at least the following variables:

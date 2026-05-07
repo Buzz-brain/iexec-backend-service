@@ -1,0 +1,156 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "iExec Backend Service API",
+    "version": "1.0.0",
+    "description": "OpenAPI spec for the iExec Backend Service. Protected endpoints require an API key header `x-api-key`."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Local server"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-api-key"
+      }
+    },
+    "schemas": {
+      "StandardResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" },
+          "statusCode": { "type": "integer" },
+          "data": { "type": "object" },
+          "timestamp": { "type": "string", "format": "date-time" }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" },
+          "statusCode": { "type": "integer" },
+          "error": { "type": "object" },
+          "timestamp": { "type": "string", "format": "date-time" }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Health check",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/StandardResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/iexec/protect-data": {
+      "post": {
+        "summary": "Protect data (create protected data asset)",
+        "security": [{ "ApiKeyAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "contract_plan_id": { "type": "string" },
+                  "plan_type": { "type": "string", "enum": ["timelock", "inactivity", "health_oracle"] },
+                  "release_timestamp": { "type": "integer" },
+                  "last_active_at": { "type": "integer" },
+                  "inactivity_period": { "type": "integer" },
+                  "grace_period": { "type": "integer" },
+                  "health_image": { "type": "string" }
+                },
+                "required": ["name", "contract_plan_id", "plan_type"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Protected data created",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/StandardResponse" }
+              }
+            }
+          },
+          "400": { "description": "Validation error", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+    "/iexec/grant-access": {
+      "post": {
+        "summary": "Grant access to protected data",
+        "security": [{ "ApiKeyAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "protectedData": { "type": "string" },
+                  "authorizedApp": { "type": "string" },
+                  "authorizedUser": { "type": "string" },
+                  "numberOfAccess": { "type": "integer" },
+                  "allowBulk": { "type": "boolean" }
+                },
+                "required": ["protectedData", "authorizedApp", "authorizedUser", "numberOfAccess"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Access granted", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/StandardResponse" } } } },
+          "400": { "description": "Validation error" },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+    "/iexec/process-data": {
+      "post": {
+        "summary": "Process protected data (start compute)",
+        "security": [{ "ApiKeyAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "protectedData": { "type": "string" },
+                  "authorizedApp": { "type": "string" },
+                  "workerpool": { "type": "string" },
+                  "workerpoolMaxPrice": { "type": "number" }
+                },
+                "required": ["protectedData", "authorizedApp", "workerpool", "workerpoolMaxPrice"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Processing started", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/StandardResponse" } } } },
+          "400": { "description": "Validation error" },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    }
+  }
+}
