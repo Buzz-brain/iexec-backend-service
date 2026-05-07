@@ -181,18 +181,16 @@ app.post('/iexec/my-endpoint', async (req, res) => {
        POST /iexec/grant-access
        POST /iexec/process-data
        GET  /health
-    ```
+   GET  /docs (Swagger UI)
+```
 
-    API documentation (Swagger UI) is available at: `GET /docs` when the server is running (serves `openapi.json`).
+### Swagger UI Documentation
 
-    ## Environment (required)
+**API documentation (Swagger UI)** is available at `/docs`:
+- **Local:** `http://localhost:3000/docs` — defaults to localhost server
+- **Deployed:** `https://iexec-backend-service.onrender.com/docs` — defaults to same host (Render)
 
-    Create `.env` with at least the following variables:
-
-    ```env
-    PRIVATE_KEY=0x...            # Ethereum private key (required)
-     # iExec Backend Service (updated)
-
+Click "Execute" in Swagger UI to try endpoints directly. The servers dropdown (top-right) allows switching between local, deployed, or custom hosts.
     Small, modular backend for iExec DataProtector exposing atomic endpoints for protecting, granting access to, and processing protected data.
 
     **Important:** The API uses an API key header (`x-api-key`) for all protected endpoints. See Environment below.
