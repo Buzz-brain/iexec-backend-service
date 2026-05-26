@@ -1,9 +1,17 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { IExecDataProtectorCore, getWeb3Provider } from '@iexec/dataprotector';
+import PQueue from 'p-queue';
 import dotenv from 'dotenv';
 
 dotenv.config({ path: '.env' });
+
+/**
+ * Transaction queue for managing blockchain requests sequentially
+ * This prevents nonce conflicts when sending multiple transactions from the same account
+ * Concurrency is set to 1 to ensure only one transaction is sent at a time
+ */
+const txQueue = new PQueue({ concurrency: 1 });
 
 const CHAIN_ID = Number(process.env.CHAIN_ID);
 const APP_ADDRESS = process.env.AUTHORIZED_APP;
@@ -76,14 +84,16 @@ function buildProtectionPayload(payload) {
  */
 async function protectData(payload) {
   try {
-    const { dataProtector } = initializeProvider();
-
     // Build minimal protection payload based on plan_type
     const protectedDataPayload = buildProtectionPayload(payload);
 
-    // Call iExec with only the data payload
-    const protectedData = await dataProtector.protectData({
-      data: protectedDataPayload,
+    // Queue the blockchain transaction to prevent nonce conflicts
+    const protectedData = await txQueue.add(async () => {
+      const { dataProtector } = initializeProvider();
+      console.log('[protectData] Transaction queued and executing...');
+      return await dataProtector.protectData({
+        data: protectedDataPayload,
+      });
     });
 
     // Return metadata about what was protected
@@ -130,15 +140,19 @@ async function grantAccess(options) {
       throw new Error('authorizedUser address is required');
     }
 
-    const { dataProtector } = initializeProvider();
-
     console.log('[grantAccess] Calling iExec with:', { protectedData, authorizedApp, authorizedUser, numberOfAccess, allowBulk });
-    const result = await dataProtector.grantAccess({
-      protectedData,
-      authorizedApp,
-      authorizedUser,
-      numberOfAccess,
-      allowBulk,
+    
+    // Queue the blockchain transaction to prevent nonce conflicts
+    const result = await txQueue.add(async () => {
+      const { dataProtector } = initializeProvider();
+      console.log('[grantAccess] Transaction queued and executing...');
+      return await dataProtector.grantAccess({
+        protectedData,
+        authorizedApp,
+        authorizedUser,
+        numberOfAccess,
+        allowBulk,
+      });
     });
     console.log('[grantAccess] Result:', result);
 
@@ -191,17 +205,21 @@ async function processData(options) {
       throw new Error('workerpoolMaxPrice is required (no env default)');
     }
 
-    const { dataProtector } = initializeProvider();
-
     console.log('[processData] Calling iExec with:', { protectedData, authorizedApp, workerpool, workerpoolMaxPrice });
-    const result = await dataProtector.processProtectedData({
-      protectedData,
-      app: authorizedApp,
-      workerpool,
-      workerpoolMaxPrice,
-      onStatusUpdate: ({ title, isDone }) => {
-        console.log(`[${isDone ? '✓' : '..'}] ${title}`);
-      },
+    
+    // Queue the blockchain transaction to prevent nonce conflicts
+    const result = await txQueue.add(async () => {
+      const { dataProtector } = initializeProvider();
+      console.log('[processData] Transaction queued and executing...');
+      return await dataProtector.processProtectedData({
+        protectedData,
+        app: authorizedApp,
+        workerpool,
+        workerpoolMaxPrice,
+        onStatusUpdate: ({ title, isDone }) => {
+          console.log(`[${isDone ? '✓' : '..'}] ${title}`);
+        },
+      });
     });
     console.log('[processData] Result:', { taskId: result.taskId, dealId: result.dealId });
 
